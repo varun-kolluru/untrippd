@@ -1,0 +1,8 @@
+fastapi
+databases
+sqlalchemy
+asyncpg
+python-dotenv
+uvicorn
+boto3
+psycopg2-binary

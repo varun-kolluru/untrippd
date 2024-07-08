@@ -1,0 +1,14 @@
+global todo:-
+
+1.) psycopg2 (for production) instead of psycopg2-binary (for playing around)
+2.) Use postgree sql instead of sqlite
+3.) use S3 for image storing
+
+
+local todo:-
+1.) implement alembic into project.
+2.) for post like and review: user_id and post_id should be unique togather (make migration through alembic)
+3.) add unlike and uncomment and edit rating apis
+4.) add remove post api
+5.) add post liked_by, rated_by and load_comments apis
+

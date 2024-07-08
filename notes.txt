@@ -1,0 +1,6 @@
+1.) instead of low rated we can do something
+2.) add share option (when shared we need our brand name to be included), like button
+3.) nearest places like airport, busstop, hotels etc.
+4.) details page:- google maps api to finish above task.
+
+in first release we need to focus on explore, events and profile.
