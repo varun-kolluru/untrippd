@@ -1,6 +1,6 @@
 from sqlalchemy import select, func
-from app.models import Post, PostRating, PostComment, PostLike
-from app.schemas import PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, PostWithDetails
+from app.models import Post, PostRating, PostComment, PostLike, Event, EventIntrest
+from app.schemas import PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, PostWithDetails, EventCreate, EventWithDetails, EventIntrestAdd
 from app.database import database
 from fastapi import HTTPException
 from sqlalchemy import delete, update
@@ -74,8 +74,6 @@ async def like_post(like: PostLikeCreate):
         raise HTTPException(status_code=500, detail="Internal Server Error: " + str(e))
     
 
-from sqlalchemy import delete, update
-
 # Unlike a post
 async def unlike_post(post_id: int, user_id: int):
     try:
@@ -137,5 +135,63 @@ async def get_post_comments(post_id: int):
         query = select(PostComment).where(PostComment.post_id == post_id)
         results = await database.fetch_all(query)
         return [dict(result) for result in results]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error: " + str(e))
+
+#create event
+async def create_event(event: EventCreate):
+    try:
+        query = Event.__table__.insert().values(
+            user_id=event.user_id,
+            title=event.title,
+            category=event.category,
+            location=event.location,
+            image=event.image,
+            description=event.description,
+            start_time=event.start_time,
+            end_time=event.end_time,
+        )
+        await database.execute(query)
+        return {"message": "Event created successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error: " + str(e))
+    
+#fetch events
+async def get_events(location: str, skip: int = 0, limit: int = 10):
+    try:
+        query = select(
+            Event
+        ).where(Event.location == location
+        ).offset(skip).limit(limit)
+        results = await database.fetch_all(query)
+        return [EventWithDetails(**dict(result)) for result in results]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error: " + str(e))
+    
+async def add_intrest(intrest: EventIntrestAdd):
+    try:
+        query = EventIntrest.__table__.insert().values(
+            event_id=intrest.event_id,
+            intrested_user_id=intrest.intrested_user_id,
+        )
+        await database.execute(query)
+        return {"message": "intrest added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error: " + str(e))
+
+async def remove_intrest(event_id: int, user_id: int):
+    try:
+        query = delete(EventIntrest).where(EventIntrest.event_id == event_id, EventIntrest.intrested_user_id == user_id)
+        await database.execute(query)
+        return {"message": "intrest removed successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error: " + str(e))
+    
+# Get users who are intrested in a event
+async def get_intrested_users(event_id: int):
+    try:
+        query = select(EventIntrest.intrested_user_id).where(EventIntrest.event_id == event_id)
+        results = await database.fetch_all(query)
+        return [result["intrested_user_id"] for result in results]
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error: " + str(e))

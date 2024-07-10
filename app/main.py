@@ -1,8 +1,8 @@
 from fastapi import FastAPI, File, UploadFile,Form
 from app.database import engine, database
-from app.models import Base
-from app.crud import create_post, get_posts, rate_post, comment_post,like_post,uncomment_post,unlike_post,edit_rating_post,remove_post,get_liked_by_users,get_post_comments,get_rated_by_users
-from app.schemas import PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, PostWithDetails
+from app.models import Base,categories_data
+from app.crud import create_post, get_posts, rate_post, comment_post,like_post,uncomment_post,unlike_post,edit_rating_post,remove_post,get_liked_by_users,get_post_comments,get_rated_by_users,create_event, get_events, get_intrested_users, add_intrest, remove_intrest
+from app.schemas import PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, PostWithDetails, EventCreate, EventWithDetails, EventIntrestAdd
 from datetime import datetime
 
 Base.metadata.create_all(bind=engine)
@@ -24,8 +24,7 @@ async def create_post_endpoint(user_id: int = Form(...), timestamp: datetime = F
     post = PostCreate(user_id=user_id, timestamp=timestamp, location=location, image="image_url", description=description)
     return await create_post(post)
 
-
-@app.get("/posts", response_model=list[PostWithDetails])
+@app.get("/posts", response_model=list[PostWithDetails], status_code=200)
 async def get_posts_endpoint(location: str, skip: int = 0, limit: int = 10):
     return await get_posts(location, skip, limit)
 
@@ -72,3 +71,30 @@ async def get_rated_by_users_endpoint(post_id: int):
 async def get_post_comments_endpoint(post_id: int):
     return await get_post_comments(post_id)
 
+@app.get("/events/categories")
+async def get_event_categories():
+    return categories_data
+
+@app.post("/events", status_code=201)
+async def create_events_endpoint(user_id: int = Form(...),category: str = Form(...), start_time: datetime = Form(...),end_time:datetime = Form(...),title: str = Form(...), location: str = Form(...), description: str = Form(...), file: UploadFile = File(...)):
+    #image_url = await upload_image_to_s3(file)
+    event = EventCreate(user_id=user_id,category=category, start_time=start_time, end_time=end_time,title=title, location=location, image="image_url", description=description)
+    return await create_event(event)
+
+
+@app.get("/events", response_model=list[EventWithDetails], status_code=200)
+async def get_events_endpoint(location: str, skip: int = 0, limit: int = 10):
+    return await get_events(location, skip, limit)
+
+@app.post("/events/{event_id}/intrest", status_code=201)
+async def add_intrest_endpoint(event_id: int, intrest: EventIntrestAdd):
+    intrest.event_id = event_id
+    return await add_intrest(intrest)
+
+@app.delete("/events/{event_id}/intrest", status_code=200)
+async def remove_intrest_endpoint(event_id: int, user_id: int):
+    return await remove_intrest(event_id, user_id)
+
+@app.get("/events/{event_id}/intrested_users", status_code=200)
+async def get_intrested_users_endpoint(event_id: int):
+    return await get_intrested_users(event_id)
