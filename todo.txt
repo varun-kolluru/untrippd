@@ -3,74 +3,12 @@ global todo:-
 1.) psycopg2 (for production) instead of psycopg2-binary (for playing around)
 2.) Use postgree sql instead of sqlite
 3.) use S3 for image storing
+4.) put database level constrants.
 
 
 local todo:-
 1.) implement alembic into project.
-2.) for post like and review: user_id and post_id should be unique togather (make migration through alembic)
-
-
-events:-
-{
-  "Community and Cultural Events": [
-    "Festivals",
-    "Parades",
-    "Community Gatherings"
-  ],
-  "Recreational and Leisure Events": [
-    "Sports Events",
-    "Outdoor Activities",
-    "Fairs and Carnivals"
-  ],
-  "Arts and Entertainment": [
-    "Concerts and Performances",
-    "Film Screenings",
-    "Art Exhibits"
-  ],
-  "Educational and Informative Events": [
-    "Workshops and Classes",
-    "Seminars and Lectures",
-    "Book Fairs and Author Events"
-  ],
-  "Social and Celebration Events": [
-    "Parties",
-    "Fundraisers and Charity Events",
-    "Holiday Celebrations"
-  ],
-  "Religious and Spiritual Events": [
-    "Religious Services",
-    "Spiritual Retreats",
-    "Religious Festivals"
-  ],
-  "Business and Networking Events": [
-    "Conferences and Seminars",
-    "Networking Events",
-    "Product Launches"
-  ],
-  "Health and Wellness Events": [
-    "Health Fairs",
-    "Fitness Events",
-    "Mental Health Workshops"
-  ],
-  "Environmental and Sustainability Events": [
-    "Clean-Up Drives",
-    "Environmental Awareness Events",
-    "Gardening and Planting Events"
-  ],
-  "Youth and Family Events": [
-    "Family Fun Days",
-    "Youth Sports",
-    "Educational Camps"
-  ]
-}
-
-
-endpoints:-
-
-get categories:- send above data structure
-post_event:- inputs:- id,location,image, category, event title,description,start_time,end_time
-get_event_intrested:- inputs:- user_id,
-post_event_intrest:- input:- user_id,
+2.) for post like and review, event intrest: user_id and post_id should be unique togather.
 
 
 

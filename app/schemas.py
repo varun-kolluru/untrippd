@@ -1,6 +1,11 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import List
+from typing import List,Optional,Any
+
+class ResponseModel(BaseModel):
+    status_code: int
+    msg: str
+    data: Optional[Any] = None
 
 class PostCreate(BaseModel):
     user_id: int
