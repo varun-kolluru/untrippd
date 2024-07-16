@@ -1,10 +1,53 @@
 from sqlalchemy import select, func
-from app.models import Post, PostRating, PostComment, PostLike, Event, EventIntrest
-from app.schemas import ResponseModel,PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, PostWithDetails, EventCreate, EventWithDetails, EventIntrestAdd
+from app.models import User, Post, PostRating, PostComment, PostLike, Event, EventIntrest
+from app.schemas import ResponseModel,PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, PostWithDetails, EventCreate, EventWithDetails, EventIntrestAdd, UserCreate, UserCredentials
 from app.database import database
 from fastapi import HTTPException
 from sqlalchemy import delete, update
+from passlib.context import CryptContext
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+class Hasher():
+    @staticmethod
+    def verify_password(plain_password, hashed_password):
+        return pwd_context.verify(plain_password, hashed_password)
+
+    @staticmethod
+    def get_password_hash(password):
+        return pwd_context.hash(password)
+    
+#create user
+async def create_user(user: UserCreate):
+    try:
+        password=Hasher.get_password_hash(user.password)  #encript the password
+        print(password)
+        query = User.__table__.insert().values(
+            username=user.username,
+            email=user.email,
+            password=password,
+            name=user.name
+        )
+        data=await database.execute(query)
+        return ResponseModel(status_code=201,msg="User created successfully",data=data)
+    except Exception as e:
+        return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
+    
+#login user
+async def login_user(user: UserCredentials):
+    try:
+        query = select(User).where(User.username == user.username)
+        result = await database.fetch_one(query)
+        if result==None:
+            return ResponseModel(status_code=404, msg="User not found", data="no user found")
+        if Hasher.verify_password(user.password,result.password):
+            return ResponseModel(status_code=200, msg="Success", data="login successfull")
+        else:
+            return ResponseModel(status_code=200, msg="Wrong password", data="wrong password")
+    except Exception as e:
+        return ResponseModel(status_code=500, msg="Database Error", data=str(e))
+    
 #create post
 async def create_post(post: PostCreate):
     try:

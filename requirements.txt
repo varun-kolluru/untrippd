@@ -6,3 +6,6 @@ python-dotenv
 uvicorn
 boto3
 psycopg2-binary
+aiosqlite
+passlib
+bcrypt==4.0.1

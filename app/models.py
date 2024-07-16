@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, func
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -56,11 +56,20 @@ categories_data={
   ]
 }
 
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password = Column(String, nullable=False)
+    name = Column(String)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 class Post(Base):
     __tablename__ = "posts"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
-    timestamp = Column(DateTime)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
     location = Column(String)
     image = Column(String)  # Now stores the URL to the image in S3
     description = Column(Text)

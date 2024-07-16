@@ -2,10 +2,10 @@ from fastapi import FastAPI, File, UploadFile,Form, Request
 from fastapi.responses import JSONResponse
 from app.database import engine, database
 from app.models import Base,categories_data
-from app.crud import create_post, get_posts, rate_post, comment_post,like_post,uncomment_post,unlike_post,edit_rating_post,remove_post,get_liked_by_users,get_post_comments,get_rated_by_users,create_event, get_events, get_intrested_users, add_intrest, remove_intrest
-from app.schemas import ResponseModel,PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, PostWithDetails, EventCreate, EventWithDetails, EventIntrestAdd
+from app.crud import login_user, create_user, create_post, get_posts, rate_post, comment_post,like_post,uncomment_post,unlike_post,edit_rating_post,remove_post,get_liked_by_users,get_post_comments,get_rated_by_users,create_event, get_events, get_intrested_users, add_intrest, remove_intrest
+from app.schemas import ResponseModel,PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, PostWithDetails, EventCreate, EventWithDetails, EventIntrestAdd, UserCreate, UserCredentials
 from datetime import datetime
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 
 Base.metadata.create_all(bind=engine)
@@ -25,6 +25,14 @@ async def shutdown():
 async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
     ResponseModel(status_code= 422,msg= "Validation Error",data= exc.errors())
     return JSONResponse(status_code=422, content={"status_code":422,"msg":"validation error","data": exc.errors()})
+
+@app.post("/register", response_model=ResponseModel, status_code=201)
+async def register_user_endpoint(user: UserCreate):
+    return await create_user(user)
+
+@app.post("/login", response_model=ResponseModel, status_code=201)
+async def login_user_endpoint(credentials: UserCredentials):
+    return await login_user(credentials)
 
 @app.post("/posts", response_model=ResponseModel, status_code=201)
 async def create_post_endpoint(user_id: int = Form(...), timestamp: datetime = Form(...), location: str = Form(...), description: str = Form(...), file: UploadFile = File(...)):

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import List,Optional,Any
 
@@ -6,6 +6,17 @@ class ResponseModel(BaseModel):
     status_code: int
     msg: str
     data: Optional[Any] = None
+
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+    name: str
+
+class UserCredentials(BaseModel):
+    username: str
+    password: str
+
 
 class PostCreate(BaseModel):
     user_id: int
