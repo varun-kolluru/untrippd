@@ -23,8 +23,7 @@ async def shutdown():
 
 @app.exception_handler(RequestValidationError)
 async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
-    ResponseModel(status_code= 422,msg= "Validation Error",data= exc.errors())
-    return JSONResponse(status_code=422, content={"status_code":422,"msg":"validation error","data": exc.errors()})
+    return JSONResponse(status_code=422, content={"status_code":422,"msg":"validation error","data": [str(i["loc"][1])+":"+i["msg"] for i in exc.errors()]})
 
 @app.post("/register", response_model=ResponseModel, status_code=201)
 async def register_user_endpoint(user: UserCreate):

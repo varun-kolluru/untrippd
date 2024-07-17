@@ -68,7 +68,7 @@ class User(Base):
 class Post(Base):
     __tablename__ = "posts"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"),index=True)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     location = Column(String)
     image = Column(String)  # Now stores the URL to the image in S3
@@ -79,25 +79,25 @@ class PostRating(Base):
     id = Column(Integer, primary_key=True, index=True)
     post_id = Column(Integer, ForeignKey("posts.id"))
     rating = Column(Integer)
-    reviewer_user_id = Column(Integer)
+    reviewer_user_id = Column(Integer, ForeignKey("users.id"))
 
 class PostComment(Base):
     __tablename__ = "post_comments"
     id = Column(Integer, primary_key=True, index=True)
     post_id = Column(Integer, ForeignKey("posts.id"))
     comment = Column(Text)
-    commenter_user_id = Column(Integer)
+    commenter_user_id = Column(Integer, ForeignKey("users.id"))
 
 class PostLike(Base):
     __tablename__ = "post_likes"
     id = Column(Integer, primary_key=True, index=True)
     post_id = Column(Integer, ForeignKey("posts.id"))
-    liked_by_user_id = Column(Integer)
+    liked_by_user_id = Column(Integer, ForeignKey("users.id"))
 
 class Event(Base):
     __tablename__= "events"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer)
+    user_id = Column(Integer, ForeignKey("users.id"))
     category = Column(String)
     location = Column(String)
     image = Column(String)
@@ -110,4 +110,4 @@ class EventIntrest(Base):
     __tablename__ = "event_intrest"
     id = Column(Integer, primary_key=True, index=True)
     event_id = Column(Integer, ForeignKey("events.id"))
-    intrested_user_id = Column(Integer)
+    intrested_user_id = Column(Integer, ForeignKey("users.id"))
