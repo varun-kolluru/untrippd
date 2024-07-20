@@ -2,7 +2,7 @@ from sqlalchemy import select, func, insert
 from app.models import User, Post, PostRating, PostComment, PostLike, Event, EventIntrest, Follow
 from app.schemas import ResponseModel,PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, PostWithDetails, EventCreate, EventWithDetails, EventIntrestAdd, UserCreate, UserCredentials
 from app.database import database
-from fastapi import HTTPException
+from app.s3 import delete_s3_file
 from sqlalchemy import delete, update
 from passlib.context import CryptContext
 
@@ -149,6 +149,7 @@ async def remove_post(post_id: int, user_id: int):
         # Assuming only the user who created the post can delete it
         query = delete(Post).where(Post.id == post_id, Post.user_id == user_id)
         data=await database.execute(query)
+        #s3_response=delete_s3_file(key='posts/'+str(post_id))
         return ResponseModel(status_code=200,msg="post deleted successfully",data=data)
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))

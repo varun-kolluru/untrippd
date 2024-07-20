@@ -5,6 +5,7 @@ asyncpg
 python-dotenv
 uvicorn
 boto3
+aioboto3
 psycopg2-binary
 aiosqlite
 passlib

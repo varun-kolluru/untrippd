@@ -5,7 +5,7 @@ from app.models import Base,categories_data
 from app.crud import (login_user, create_user, create_post, get_posts, rate_post, comment_post,like_post,uncomment_post,unlike_post,edit_rating_post,remove_post,
                       get_liked_by_users,get_post_comments,get_rated_by_users,create_event, get_events, get_intrested_users, add_intrest, remove_intrest,follow_user,
                       unfollow_user, get_followers, get_following, get_user_profile)
-from app.s3 import get_presigned_url_post,get_presigned_url_get
+from app.s3 import get_presigned_url_post,get_presigned_url_get, delete_s3_file
 from app.schemas import ResponseModel,PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, EventCreate, EventIntrestAdd, UserCreate, UserCredentials
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -133,9 +133,13 @@ async def get_user_profile_endpoint(user_id: int):
 @app.get("/s3_upload_url/{folder}/{id}", status_code=200)               #folder=profile_pics , id=user_id and folder=posts , id=post_id
 async def s3_upload_url_endpoint(folder: str, id: int):
     key= folder + "/" + str(id)
-    return get_presigned_url_post(key)
+    return await get_presigned_url_post(key)
 
 @app.get("/s3_get_url/{folder}/{id}", status_code=200)                
 async def s3_get_url_endpoint(folder: str, id: int):
     key= folder + "/" + str(id)
-    return get_presigned_url_get(key)
+    return await get_presigned_url_get(key)
+
+'''@app.get("/test/delete_s3")
+async def test():
+    return await delete_s3_file(key="profile_pics/1")'''
