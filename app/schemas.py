@@ -22,7 +22,6 @@ class PostCreate(BaseModel):
     user_id: int
     timestamp: datetime
     location: str
-    image: str  # URL to the image in S3
     description: str
 
 class PostRatingCreate(BaseModel):
@@ -48,7 +47,6 @@ class EventCreate(BaseModel):
     user_id: int
     category: str
     location: str
-    image: str
     title: str
     description: str
     start_time: datetime

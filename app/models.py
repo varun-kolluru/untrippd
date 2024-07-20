@@ -60,7 +60,7 @@ class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     name = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -71,7 +71,6 @@ class Post(Base):
     user_id = Column(Integer, ForeignKey("users.id"),index=True)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     location = Column(String)
-    image = Column(String)  # Now stores the URL to the image in S3
     description = Column(Text)
 
 class PostRating(Base):
@@ -100,7 +99,6 @@ class Event(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     category = Column(String)
     location = Column(String)
-    image = Column(String)
     title = Column(String)
     description = Column(String)
     start_time = Column(DateTime)
@@ -111,3 +109,9 @@ class EventIntrest(Base):
     id = Column(Integer, primary_key=True, index=True)
     event_id = Column(Integer, ForeignKey("events.id"))
     intrested_user_id = Column(Integer, ForeignKey("users.id"))
+
+class Follow(Base):
+    __tablename__ = 'follows'
+    follower_id = Column(Integer, ForeignKey("users.id"), primary_key=True, index=True)
+    followed_id = Column(Integer, ForeignKey("users.id"), primary_key=True, index=True)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())

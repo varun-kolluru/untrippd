@@ -1,17 +1,18 @@
-from fastapi import FastAPI, File, UploadFile,Form, Request
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from app.database import engine, database
 from app.models import Base,categories_data
-from app.crud import login_user, create_user, create_post, get_posts, rate_post, comment_post,like_post,uncomment_post,unlike_post,edit_rating_post,remove_post,get_liked_by_users,get_post_comments,get_rated_by_users,create_event, get_events, get_intrested_users, add_intrest, remove_intrest
-from app.schemas import ResponseModel,PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, PostWithDetails, EventCreate, EventWithDetails, EventIntrestAdd, UserCreate, UserCredentials
-from datetime import datetime
+from app.crud import (login_user, create_user, create_post, get_posts, rate_post, comment_post,like_post,uncomment_post,unlike_post,edit_rating_post,remove_post,
+                      get_liked_by_users,get_post_comments,get_rated_by_users,create_event, get_events, get_intrested_users, add_intrest, remove_intrest,follow_user,
+                      unfollow_user, get_followers, get_following, get_user_profile)
+from app.s3 import get_presigned_url_post,get_presigned_url_get
+from app.schemas import ResponseModel,PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, EventCreate, EventIntrestAdd, UserCreate, UserCredentials
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
 
 @app.on_event("startup")
 async def startup():
@@ -34,9 +35,7 @@ async def login_user_endpoint(credentials: UserCredentials):
     return await login_user(credentials)
 
 @app.post("/posts", response_model=ResponseModel, status_code=201)
-async def create_post_endpoint(user_id: int = Form(...), timestamp: datetime = Form(...), location: str = Form(...), description: str = Form(...), file: UploadFile = File(...)):
-    #image_url = await upload_image_to_s3(file)
-    post = PostCreate(user_id=user_id, timestamp=timestamp, location=location, image="image_url", description=description)
+async def create_post_endpoint(post: PostCreate):
     return await create_post(post)
 
 @app.get("/posts", response_model=ResponseModel, status_code=200)
@@ -91,11 +90,8 @@ async def get_event_categories():
     return  ResponseModel(status_code=200,msg="categories returned successfully",data=categories_data)
 
 @app.post("/events", response_model=ResponseModel, status_code=201)
-async def create_events_endpoint(user_id: int = Form(...),category: str = Form(...), start_time: datetime = Form(...),end_time:datetime = Form(...),title: str = Form(...), location: str = Form(...), description: str = Form(...), file: UploadFile = File(...)):
-    #image_url = await upload_image_to_s3(file)
-    event = EventCreate(user_id=user_id,category=category, start_time=start_time, end_time=end_time,title=title, location=location, image="image_url", description=description)
+async def create_events_endpoint(event: EventCreate):
     return await create_event(event)
-
 
 @app.get("/events", response_model=ResponseModel, status_code=200)
 async def get_events_endpoint(location: str, skip: int = 0, limit: int = 10):
@@ -113,3 +109,33 @@ async def remove_intrest_endpoint(event_id: int, user_id: int):
 @app.get("/events/{event_id}/intrested_users", response_model=ResponseModel, status_code=200)
 async def get_intrested_users_endpoint(event_id: int):
     return await get_intrested_users(event_id)
+
+@app.post("/users/{user_id}/follow", response_model=ResponseModel, status_code=201)
+async def follow_user_endpoint(user_id: int, followed_id: int):
+    return await follow_user(user_id, followed_id)
+
+@app.delete("/users/{user_id}/unfollow/{followed_id}", response_model=ResponseModel, status_code=200)
+async def unfollow_user_endpoint(user_id: int, followed_id: int):
+    return await unfollow_user(user_id, followed_id)
+
+@app.get("/users/{user_id}/followers", response_model=ResponseModel, status_code=200)
+async def get_followers_endpoint(user_id: int):
+    return await get_followers(user_id)
+
+@app.get("/users/{user_id}/following", response_model=ResponseModel, status_code=200)
+async def get_following_endpoint(user_id: int):
+    return await get_following(user_id)
+
+@app.get("/users/{user_id}/profile", response_model=ResponseModel, status_code=200)
+async def get_user_profile_endpoint(user_id: int):
+    return await get_user_profile(user_id)
+
+@app.get("/s3_upload_url/{folder}/{id}", status_code=200)               #folder=profile_pics , id=user_id and folder=posts , id=post_id
+async def s3_upload_url_endpoint(folder: str, id: int):
+    key= folder + "/" + str(id)
+    return get_presigned_url_post(key)
+
+@app.get("/s3_get_url/{folder}/{id}", status_code=200)                
+async def s3_get_url_endpoint(folder: str, id: int):
+    key= folder + "/" + str(id)
+    return get_presigned_url_get(key)

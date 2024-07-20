@@ -4,11 +4,9 @@ global todo:-
 2.) Use postgree sql instead of sqlite
 3.) use S3 for image storing
 4.) put database level constrants.
-
+5.) implement alembic into project
 
 local todo:-
-1.) implement alembic into project.
-2.) for post like and review, event intrest: user_id and post_id should be unique togather.
 
 
 

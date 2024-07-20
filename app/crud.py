@@ -1,5 +1,5 @@
-from sqlalchemy import select, func
-from app.models import User, Post, PostRating, PostComment, PostLike, Event, EventIntrest
+from sqlalchemy import select, func, insert
+from app.models import User, Post, PostRating, PostComment, PostLike, Event, EventIntrest, Follow
 from app.schemas import ResponseModel,PostCreate, PostRatingCreate, PostCommentCreate, PostLikeCreate, PostWithDetails, EventCreate, EventWithDetails, EventIntrestAdd, UserCreate, UserCredentials
 from app.database import database
 from fastapi import HTTPException
@@ -55,7 +55,6 @@ async def create_post(post: PostCreate):
             user_id=post.user_id,
             timestamp=post.timestamp,
             location=post.location,
-            image=post.image,
             description=post.description,
         )
         data=await database.execute(query)
@@ -189,7 +188,6 @@ async def create_event(event: EventCreate):
             title=event.title,
             category=event.category,
             location=event.location,
-            image=event.image,
             description=event.description,
             start_time=event.start_time,
             end_time=event.end_time,
@@ -238,3 +236,61 @@ async def get_intrested_users(event_id: int):
         return ResponseModel(status_code=200,msg="fetched successfully",data=[result["intrested_user_id"] for result in results])
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
+    
+async def follow_user(follower_id: int, followed_id: int):
+    try:
+        query = insert(Follow).values(follower_id=follower_id, followed_id=followed_id)
+        data=await database.execute(query)
+        return ResponseModel(status_code=201, msg="Followed successfully",data=data)
+    except Exception as e:
+        return ResponseModel(status_code=500, msg="Database Error", data=str(e))
+
+async def unfollow_user(follower_id: int, followed_id: int):
+    try:
+        query = delete(Follow).where(Follow.follower_id == follower_id, Follow.followed_id == followed_id)
+        data=await database.execute(query)
+        return ResponseModel(status_code=200, msg="Unfollowed successfully",data=data)
+    except Exception as e:
+        return ResponseModel(status_code=500, msg="Database Error", data=str(e))
+    
+async def get_followers(user_id: int):
+    try:
+        query = select(Follow.follower_id).where(Follow.followed_id == user_id)
+        results = await database.fetch_all(query)
+        return ResponseModel(status_code=200, msg="Fetched successfully", data=[result["follower_id"] for result in results])
+    except Exception as e:
+        return ResponseModel(status_code=500, msg="Database Error", data=str(e))
+
+async def get_following(user_id: int):
+    try:
+        query = select(Follow.followed_id).where(Follow.follower_id == user_id)
+        results = await database.fetch_all(query)
+        return ResponseModel(status_code=200, msg="Fetched successfully", data=[result["followed_id"] for result in results])
+    except Exception as e:
+        return ResponseModel(status_code=500, msg="Database Error", data=str(e))
+    
+async def get_user_profile(user_id: int):
+    try:
+        query = """
+        SELECT users.id, users.username, users.email, users.name,
+            (SELECT COUNT(*) FROM follows WHERE follows.followed_id = :user_id) AS followers_count,
+            (SELECT COUNT(*) FROM follows WHERE follows.follower_id = :user_id) AS following_count,
+            (SELECT COUNT(*) FROM posts WHERE posts.user_id = :user_id) AS posts_count
+        FROM users
+        WHERE users.id = :user_id
+        """
+        result = await database.fetch_one(query, values={"user_id": user_id})
+
+        user_data = {
+            "id": result["id"],
+            "username": result["username"],
+            "email": result["email"],
+            "name": result["name"],
+            "followers_count": result["followers_count"],
+            "following_count": result["following_count"],
+            "posts_count": result["posts_count"]
+        }
+        
+        return ResponseModel(status_code=200, msg="Fetched successfully", data=user_data)
+    except Exception as e:
+        return ResponseModel(status_code=500, msg="Database Error", data=str(e))
