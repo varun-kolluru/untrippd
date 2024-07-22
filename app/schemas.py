@@ -20,7 +20,6 @@ class UserCredentials(BaseModel):
 
 class PostCreate(BaseModel):
     user_id: int
-    timestamp: datetime
     location: str
     description: str
 

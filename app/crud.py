@@ -30,7 +30,7 @@ async def create_user(user: UserCreate):
             name=user.name
         )
         data=await database.execute(query)
-        return ResponseModel(status_code=201,msg="User created successfully",data=data)
+        return ResponseModel(status_code=201,msg="User created successfully")
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
     
@@ -40,11 +40,12 @@ async def login_user(user: UserCredentials):
         query = select(User).where(User.username == user.username)
         result = await database.fetch_one(query)
         if result==None:
-            return ResponseModel(status_code=404, msg="User not found", data="no user found")
+            return ResponseModel(status_code=404, msg="User not found")
         if Hasher.verify_password(user.password,result.password):
-            return ResponseModel(status_code=200, msg="Success", data="login successfull")
+            result={i:result[i] for i in result if i not in ["password","created_at"]}
+            return ResponseModel(status_code=200, msg="login successfull", data=result)
         else:
-            return ResponseModel(status_code=200, msg="Wrong password", data="wrong password")
+            return ResponseModel(status_code=200, msg="Wrong password")
     except Exception as e:
         return ResponseModel(status_code=500, msg="Database Error", data=str(e))
     
@@ -53,12 +54,11 @@ async def create_post(post: PostCreate):
     try:
         query = Post.__table__.insert().values(
             user_id=post.user_id,
-            timestamp=post.timestamp,
             location=post.location,
             description=post.description,
         )
         data=await database.execute(query)
-        return ResponseModel(status_code=201,msg="Post created successfully",data=data)
+        return ResponseModel(status_code=201,msg="Post created successfully")
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
 
@@ -88,7 +88,7 @@ async def rate_post(rating: PostRatingCreate):
             reviewer_user_id=rating.reviewer_user_id,
         )
         data=await database.execute(query)
-        return ResponseModel(status_code=201,msg="rated successfully",data=data)
+        return ResponseModel(status_code=201,msg="rated successfully")
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
 
@@ -100,7 +100,7 @@ async def comment_post(comment: PostCommentCreate):
             commenter_user_id=comment.commenter_user_id,
         )
         data=await database.execute(query)
-        return ResponseModel(status_code=201,msg="comment added successfully",data=data)
+        return ResponseModel(status_code=201,msg="comment added successfully")
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
 
@@ -111,7 +111,7 @@ async def like_post(like: PostLikeCreate):
             liked_by_user_id=like.liked_by_user_id,
         )
         data=await database.execute(query)
-        return ResponseModel(status_code=201,msg="like added successfully",data=data)
+        return ResponseModel(status_code=201,msg="like added successfully")
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
     
@@ -121,7 +121,7 @@ async def unlike_post(post_id: int, user_id: int):
     try:
         query = delete(PostLike).where(PostLike.post_id == post_id, PostLike.liked_by_user_id == user_id)
         data=await database.execute(query)
-        return ResponseModel(status_code=201,msg="like removed successfully",data=data)
+        return ResponseModel(status_code=201,msg="like removed successfully")
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
 
@@ -130,7 +130,7 @@ async def uncomment_post(comment_id: int, user_id: int):
     try:
         query = delete(PostComment).where(PostComment.id == comment_id, PostComment.commenter_user_id == user_id)
         data=await database.execute(query)
-        return ResponseModel(status_code=201,msg="comment removed successfully",data=data)
+        return ResponseModel(status_code=201,msg="comment removed successfully")
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
 
@@ -139,7 +139,7 @@ async def edit_rating_post(rating_id: int, new_rating: int, user_id: int):
     try:
         query = update(PostRating).where(PostRating.id == rating_id, PostRating.reviewer_user_id == user_id).values(rating=new_rating)
         data=await database.execute(query)
-        return ResponseModel(status_code=201,msg="rating updated successfully",data=data)
+        return ResponseModel(status_code=201,msg="rating updated successfully")
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
     
@@ -150,7 +150,7 @@ async def remove_post(post_id: int, user_id: int):
         query = delete(Post).where(Post.id == post_id, Post.user_id == user_id)
         data=await database.execute(query)
         #s3_response=delete_s3_file(key='posts/'+str(post_id))
-        return ResponseModel(status_code=200,msg="post deleted successfully",data=data)
+        return ResponseModel(status_code=200,msg="post deleted successfully")
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
 
@@ -159,7 +159,7 @@ async def get_liked_by_users(post_id: int):
     try:
         query = select(PostLike.liked_by_user_id).where(PostLike.post_id == post_id)
         results = await database.fetch_all(query)
-        return [result["liked_by_user_id"] for result in results]
+        return ResponseModel(status_code=200,msg="fetched liked by users",data=[result["liked_by_user_id"] for result in results])
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
 
@@ -194,7 +194,7 @@ async def create_event(event: EventCreate):
             end_time=event.end_time,
         )
         data=await database.execute(query)
-        return ResponseModel(status_code=200,msg="event created successfully",data=data)
+        return ResponseModel(status_code=200,msg="event created successfully")
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
     
@@ -217,7 +217,7 @@ async def add_intrest(intrest: EventIntrestAdd):
             intrested_user_id=intrest.intrested_user_id,
         )
         data=await database.execute(query)
-        return ResponseModel(status_code=200,msg="intrest added successfully",data=data)
+        return ResponseModel(status_code=200,msg="intrest added successfully")
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
 
@@ -225,7 +225,7 @@ async def remove_intrest(event_id: int, user_id: int):
     try:
         query = delete(EventIntrest).where(EventIntrest.event_id == event_id, EventIntrest.intrested_user_id == user_id)
         data=await database.execute(query)
-        return ResponseModel(status_code=200,msg="intrest removed successfully",data=data)
+        return ResponseModel(status_code=200,msg="intrest removed successfully")
     except Exception as e:
         return ResponseModel(status_code=500,msg="DataBase Error",data=str(e))
     
@@ -242,7 +242,7 @@ async def follow_user(follower_id: int, followed_id: int):
     try:
         query = insert(Follow).values(follower_id=follower_id, followed_id=followed_id)
         data=await database.execute(query)
-        return ResponseModel(status_code=201, msg="Followed successfully",data=data)
+        return ResponseModel(status_code=201, msg="Followed successfully")
     except Exception as e:
         return ResponseModel(status_code=500, msg="Database Error", data=str(e))
 
@@ -250,7 +250,7 @@ async def unfollow_user(follower_id: int, followed_id: int):
     try:
         query = delete(Follow).where(Follow.follower_id == follower_id, Follow.followed_id == followed_id)
         data=await database.execute(query)
-        return ResponseModel(status_code=200, msg="Unfollowed successfully",data=data)
+        return ResponseModel(status_code=200, msg="Unfollowed successfully")
     except Exception as e:
         return ResponseModel(status_code=500, msg="Database Error", data=str(e))
     
