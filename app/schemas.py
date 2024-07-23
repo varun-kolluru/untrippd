@@ -19,6 +19,7 @@ class UserCredentials(BaseModel):
 
 
 class PostCreate(BaseModel):
+    title: str
     user_id: int
     location: str
     description: str
